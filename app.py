@@ -82,11 +82,16 @@ st.set_page_config(page_title="CSE Syllabus RAG Assistant", page_icon="📚", la
 st.title("📚 CSE Syllabus RAG Assistant")
 st.markdown("Ask questions about the NIT Durgapur CSE B.Tech Syllabus (credits, books, depth electives, course content).")
 
-st.sidebar.header("Configuration")
-groq_api_key = st.sidebar.text_input("Enter Groq API Key", type="password")
-st.sidebar.markdown(
-    "Get your free API key at [Groq Console](https://console.groq.com/keys)."
-)
+secret_api_key = st.secrets.get("GROQ_API_KEY")
+
+if not secret_api_key:
+    st.sidebar.header("Configuration")
+    groq_api_key = st.sidebar.text_input("Enter Groq API Key", type="password")
+    st.sidebar.markdown(
+        "Get your free API key at [Groq Console](https://console.groq.com/keys)."
+    )
+else:
+    groq_api_key = secret_api_key
 
 if not groq_api_key:
     st.info("Please enter your Groq API Key in the sidebar to continue.")
