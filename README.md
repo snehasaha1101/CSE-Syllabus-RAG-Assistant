@@ -1,5 +1,6 @@
 # NIT Durgapur CSE Syllabus RAG Assistant
 
+**🚀 Live Demo: [Try the App Here!](https://snehasaha1101-cse-syllabus-rag-assistant-app-xfimen.streamlit.app/)**
 # Context-Aware Syllabus RAG Assistant
 
 An advanced Retrieval-Augmented Generation (RAG) system built to query a highly structured, 161-page Computer Science B.Tech Syllabus. This system uses **LangChain (LCEL)**, **Meta's Llama-3.3-70B (Groq)**, and a local **ChromaDB** vector store.
