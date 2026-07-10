@@ -72,7 +72,7 @@ def main():
         
     print("Loading vectorstore...")
     embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-    vectorstore = Chroma(persist_directory="./chroma_db_v4", embedding_function=embeddings)
+    vectorstore = Chroma(persist_directory="./chroma_db_v5", embedding_function=embeddings)
     
     total = len(testset)
     hit_5 = 0

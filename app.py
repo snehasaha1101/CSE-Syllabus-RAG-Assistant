@@ -11,8 +11,7 @@ from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import StrOutputParser
-
-CHROMA_DB_DIR = "./chroma_db_v4"
+CHROMA_DB_DIR = "./chroma_db_v5"
 
 @st.cache_resource
 def load_vectorstore():

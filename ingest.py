@@ -9,7 +9,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.documents import Document
 
 PDF_PATH = "syllabus.pdf"
-CHROMA_DB_DIR = "./chroma_db_v4"
+CHROMA_DB_DIR = "./chroma_db_v5"
 SUBJECTS_JSON = "subjects.json"
 
 SEMESTER_HEADERS = {
