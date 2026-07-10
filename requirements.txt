@@ -6,7 +6,5 @@ langchain-chroma
 langchain-huggingface
 streamlit
 pdfplumber
-numpy<2.0.0
-scipy<1.14.0
 sentence-transformers
 pyyaml
