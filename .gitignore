@@ -1,0 +1,15 @@
+# Ignore Vector Stores
+chroma_db/
+chroma_db_v2/
+chroma_db_v3/
+
+# Ignore Python caches
+__pycache__/
+*.pyc
+.env
+.venv
+venv/
+
+# Evaluation outputs
+eval_results.md
+subjects.json

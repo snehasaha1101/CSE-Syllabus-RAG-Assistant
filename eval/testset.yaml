@@ -1,0 +1,77 @@
+# Context-Aware Syllabus RAG Assistant
+
+A Retrieval-Augmented Generation (RAG) system built to query a 161-page NIT Durgapur CSE B.Tech syllabus. Uses **LangChain (LCEL)**, **Llama-3.1-8B via Groq** (generation) with **Llama-3.3-70B** as the evaluation judge, and a local **ChromaDB** vector store with `all-MiniLM-L6-v2` embeddings.
+
+🔗 **[Live Demo](https://your-streamlit-link.streamlit.app)** *(replace with actual URL after deploying)*
+
+---
+
+## Key Architectural Choices
+
+### 1. Two-Pass Subject Extraction
+The ingestion pipeline (`ingest.py`) does not rely on naive fixed-size chunking:
+- **Pass 1:** Regex scan identifies authentic course-code headers (e.g., `CSC 301 Discrete Mathematics`) and semester headers (`SEMESTER-III`).
+- **Pass 2:** All lines belonging to a subject are concatenated into a single block, with character offsets mapped back to their original PDF pages.
+- **Result:** Every chunk stored in ChromaDB has its Subject Code + Title prepended to the text, preserving semantic anchoring even when a subject is split across chunks.
+
+### 2. Dynamic Metadata Filtering
+When a query contains a course code (e.g., "prerequisites for CSC301?"), the app extracts it via regex, validates it against a known-subjects list (`subjects.json`), and passes `filter={"subject_code": "CSC301"}` to ChromaDB — narrowing the search space and improving retrieval precision. Semester queries (e.g., "3rd semester") are similarly routed to `SEM3`.
+
+### 3. Hallucination Prevention
+A strict system prompt instructs the model to refuse when the context does not contain the answer, using a fixed refusal phrase. All answers surface source citations (subject code + page number) in the Streamlit UI.
+
+---
+
+## Evaluation
+
+Standalone evaluation (`eval.py`) on a hand-built 20-question test set split into:
+- **9 single-subject lookups** (e.g., "prerequisites for CSC302")
+- **4 cross-subject / structural queries** (e.g., "total credits to graduate", "list 3rd semester core courses")
+- **7 adversarial refusal cases** (e.g., "syllabus for CSC999 Time Travel Mechanics", off-topic queries)
+
+Answer correctness is scored via **LLM-as-a-judge** using `llama-3.3-70b-versatile` (independent from the 8B generation model). Adversarial questions are scored by exact-string check for the refusal phrase.
+
+
+## Setup
+
+```bash
+# 1. Install dependencies
+pip install -r requirements.txt
+
+# 2. Build the vector store (~30–60 seconds)
+python ingest.py
+
+# 3. Launch the app
+streamlit run app.py
+```
+
+You'll need a free Groq API key from [console.groq.com](https://console.groq.com/keys), entered in the Streamlit sidebar.
+
+---
+
+## Tech Stack
+
+- **Orchestration:** LangChain (LCEL)
+- **Vector store:** ChromaDB
+- **Embeddings:** `all-MiniLM-L6-v2` (384-dim)
+- **Generation LLM:** Llama-3.1-8B via Groq
+- **Evaluation judge:** Llama-3.3-70B via Groq
+- **UI:** Streamlit
+- **PDF parsing:** pdfplumber
+
+---
+
+## Repository Structure
+
+```
+.
+├── ingest.py            # Two-pass PDF extraction → ChromaDB
+├── app.py               # Streamlit UI + query routing
+├── eval.py              # Evaluation harness with LLM-as-judge
+├── eval/
+│   └── testset.yaml     # 20 hand-built QA pairs
+├── subjects.json        # Known subject codes (for query validation)
+├── chroma_db_v3/        # Persisted vector store
+├── syllabus.pdf         # Source document
+└── requirements.txt
+```

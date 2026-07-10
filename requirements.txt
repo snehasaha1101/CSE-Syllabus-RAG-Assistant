@@ -1,0 +1,12 @@
+langchain>=1.3.11
+langchain-core>=1.4.8
+langchain-community>=0.4.2
+langchain-groq
+langchain-chroma
+langchain-huggingface
+streamlit
+pdfplumber
+numpy<2.0.0
+scipy<1.14.0
+sentence-transformers
+pyyaml
