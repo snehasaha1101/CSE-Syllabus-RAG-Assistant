@@ -115,6 +115,8 @@ else:
             st.stop()
 
     query = st.text_input("Ask a question:")
+    search_pressed = st.button("Search", type="primary")
+    
     st.markdown("""
     **Example questions:**
     - Provide me credits of each semester for the program
@@ -122,7 +124,7 @@ else:
     - List all 3rd semester core courses.
     """)
 
-    if st.button("Search", type="primary") and query:
+    if search_pressed and query:
         with st.spinner("Retrieving and Generating..."):
             filter_code = None
             
