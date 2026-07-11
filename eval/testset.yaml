@@ -52,7 +52,7 @@
   type: "cross_subject"
 
 - question: "What are the core subjects in Semester 7?"
-  expected_answer: "CSC701 and corresponding labs."
+  expected_answer: "Principles of Management (MSC731), Data Science (CSC 701), and various laboratories including Data Science Lab, Internet Technologies Lab, Summer Internship, and Project-I."
   subject_code: "SEM7"
   type: "cross_subject"
 
