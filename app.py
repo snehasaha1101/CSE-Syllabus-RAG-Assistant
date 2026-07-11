@@ -122,7 +122,7 @@ else:
     - List all 3rd semester core courses.
     """)
 
-    if st.button("Search") and query:
+    if st.button("Search", type="primary") and query:
         with st.spinner("Retrieving and Generating..."):
             filter_code = None
             
