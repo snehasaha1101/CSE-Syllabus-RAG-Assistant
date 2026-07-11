@@ -40,7 +40,7 @@ def load_subjects():
 def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
-def get_qa_chain(vectorstore, groq_api_key, subject_code=None):
+def get_qa_chain(vectorstore, groq_api_key, subject_code=None, filter_dict=None, extra_instruction="", k=5):
     # LLM and chain are fast to instantiate; we don't cache this function
     # because subject_code changes per query and groq_api_key shouldn't be hashed with Streamlit.
     llm = ChatGroq(
@@ -48,8 +48,10 @@ def get_qa_chain(vectorstore, groq_api_key, subject_code=None):
         model_name="llama-3.3-70b-versatile"
     )
     
-    search_kwargs = {"k": 5}
-    if subject_code:
+    search_kwargs = {"k": k}
+    if filter_dict:
+        search_kwargs["filter"] = filter_dict
+    elif subject_code:
         search_kwargs["filter"] = {"subject_code": subject_code}
         
     retriever = vectorstore.as_retriever(search_kwargs=search_kwargs)
@@ -64,6 +66,9 @@ def get_qa_chain(vectorstore, groq_api_key, subject_code=None):
         "L = Lecture hours, T = Tutorial hours, S = Sessional/Practical hours, C = Credits, H = Total Contact Hours.\n\n"
         "{context}"
     )
+    
+    if extra_instruction:
+        system_prompt += "\n" + extra_instruction
     
     prompt = ChatPromptTemplate.from_messages([
         ("system", system_prompt),
@@ -127,22 +132,50 @@ else:
     if search_pressed and query:
         with st.spinner("Retrieving and Generating..."):
             filter_code = None
+            filter_dict = None
+            extra_instruction = ""
+            k_val = 5
             
-            # Check for semester query first
-            semester_match = re.search(r'\b(?:(\d)(?:st|nd|rd|th)?\s*semester|semester\s*-?\s*(I{1,3}|IV|V|VI{1,3}|VIII?|IX|X|\d))\b', query, re.IGNORECASE)
+            # Check for year query first
+            year_match = re.search(r'\b(?:(\d)(?:st|nd|rd|th)?\s*year|year\s*(\d))\b', query, re.IGNORECASE)
+            year_word_match = re.search(r'\b(first|second|third|fourth)\s*year\b', query, re.IGNORECASE)
             
-            if semester_match:
-                # Need to normalize roman numerals to digits if they appear
-                raw_sem = semester_match.group(1) or semester_match.group(2)
-                roman_to_digit = {"I": "1", "II": "2", "III": "3", "IV": "4", "V": "5", "VI": "6", "VII": "7", "VIII": "8"}
-                sem_num = roman_to_digit.get(raw_sem.upper(), raw_sem)
-                candidate = f"SEM{sem_num}"
-                if candidate in known_subjects:
-                    filter_code = candidate
-                    st.info(f"Detected query for Semester {sem_num}, applying metadata filter to search...")
+            if year_match or year_word_match:
+                if year_match:
+                    year_num = year_match.group(1) or year_match.group(2)
+                else:
+                    word_to_num = {"first": "1", "second": "2", "third": "3", "fourth": "4"}
+                    year_num = word_to_num[year_word_match.group(1).lower()]
+                
+                year_to_sems = {
+                    "1": ["SEM1", "SEM2"],
+                    "2": ["SEM3", "SEM4"],
+                    "3": ["SEM5", "SEM6"],
+                    "4": ["SEM7", "SEM8"]
+                }
+                sems = year_to_sems.get(year_num)
+                if sems and sems[0] in known_subjects and sems[1] in known_subjects:
+                    filter_dict = {"$or": [{"subject_code": sems[0]}, {"subject_code": sems[1]}]}
+                    k_val = 8 # Need more context chunks for two whole semesters
+                    extra_instruction = f"The user is asking about Year {year_num}. Ensure you explain that it consists of Semester {sems[0][-1]} and Semester {sems[1][-1]}, and provide the details for both."
+                    st.info(f"Detected query for Year {year_num} (Semesters {sems[0][-1]} & {sems[1][-1]}), applying metadata filter...")
+            
+            # Check for semester query if not a year query
+            if not filter_dict:
+                semester_match = re.search(r'\b(?:(\d)(?:st|nd|rd|th)?\s*semester|semester\s*-?\s*(I{1,3}|IV|V|VI{1,3}|VIII?|IX|X|\d))\b', query, re.IGNORECASE)
+                
+                if semester_match:
+                    # Need to normalize roman numerals to digits if they appear
+                    raw_sem = semester_match.group(1) or semester_match.group(2)
+                    roman_to_digit = {"I": "1", "II": "2", "III": "3", "IV": "4", "V": "5", "VI": "6", "VII": "7", "VIII": "8"}
+                    sem_num = roman_to_digit.get(raw_sem.upper(), raw_sem)
+                    candidate = f"SEM{sem_num}"
+                    if candidate in known_subjects:
+                        filter_code = candidate
+                        st.info(f"Detected query for Semester {sem_num}, applying metadata filter to search...")
             
             # If not a semester query, check for a course code
-            if not filter_code:
+            if not filter_dict and not filter_code:
                 subject_match = re.search(r'\b([a-zA-Z]{2,4})\s*(\d{2,3})\b', query)
                 if subject_match:
                     candidate = (subject_match.group(1) + subject_match.group(2)).upper()
@@ -150,7 +183,7 @@ else:
                         filter_code = candidate
                         st.info(f"Detected course code {filter_code}, applying metadata filter to search...")
                 
-            qa_chain = get_qa_chain(vectorstore, groq_api_key, subject_code=filter_code)
+            qa_chain = get_qa_chain(vectorstore, groq_api_key, subject_code=filter_code, filter_dict=filter_dict, extra_instruction=extra_instruction, k=k_val)
             response = qa_chain.invoke(query)
             
             st.markdown("### Answer")
