@@ -157,7 +157,7 @@ else:
                 if sems and sems[0] in known_subjects and sems[1] in known_subjects:
                     filter_dict = {"$or": [{"subject_code": sems[0]}, {"subject_code": sems[1]}]}
                     k_val = 8 # Need more context chunks for two whole semesters
-                    extra_instruction = f"The user is asking about Year {year_num}. Ensure you explain that it consists of Semester {sems[0][-1]} and Semester {sems[1][-1]}, and provide the details for both."
+                    extra_instruction = f"The user is asking about Year {year_num}. Ensure you explain that it consists of Semester {sems[0][-1]} and Semester {sems[1][-1]}. List the courses provided in the context for both semesters. Do not refuse to answer if you only have the course names/credits instead of full topics; providing the course list is the correct answer."
                     st.info(f"Detected query for Year {year_num} (Semesters {sems[0][-1]} & {sems[1][-1]}), applying metadata filter...")
             
             # Check for semester query if not a year query
