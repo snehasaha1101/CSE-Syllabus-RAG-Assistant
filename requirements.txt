@@ -8,3 +8,4 @@ streamlit
 pdfplumber
 sentence-transformers
 pyyaml
+pysqlite3-binary

@@ -1,4 +1,11 @@
 import os
+import sys
+try:
+    __import__('pysqlite3')
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+except ImportError:
+    pass
+
 import re
 import json
 import streamlit as st
