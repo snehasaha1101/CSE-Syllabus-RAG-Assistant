@@ -162,7 +162,11 @@ else:
                     if is_elective:
                         extra_instruction = f"The user is asking about electives for Year {year_num} (Semester {sems[0][-1]} and Semester {sems[1][-1]}). List the requested electives from the context. If a semester does not have any electives (for example, Semester 8 does not have depth or open electives), explicitly state that and only list the electives for the semester that has them."
                     else:
-                        extra_instruction = f"The user is asking about the syllabus for Year {year_num}. Ensure you explain that it consists of Semester {sems[0][-1]} and Semester {sems[1][-1]}. List the courses provided in the context for both semesters. Do not refuse to answer if you only have the course names/credits instead of full topics; providing the course list is the correct answer."
+                        extra_instruction = f"The user is asking about the syllabus for Year {year_num}. Ensure you explain that it consists of Semester {sems[0][-1]} and Semester {sems[1][-1]}. List the courses provided in the context for both semesters. "
+                        if year_num == "1":
+                            extra_instruction += "Crucially, the 1st year syllabus is divided into GROUP-1 and GROUP-2. You must present the course lists separately for Group-1 and Group-2 for each semester."
+                        else:
+                            extra_instruction += "Do not refuse to answer if you only have the course names/credits instead of full topics; providing the course list is the correct answer."
                         
                     st.info(f"Detected query for Year {year_num} (Semesters {sems[0][-1]} & {sems[1][-1]}), applying metadata filter...")
             
