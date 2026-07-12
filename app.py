@@ -156,8 +156,14 @@ else:
                 sems = year_to_sems.get(year_num)
                 if sems and sems[0] in known_subjects and sems[1] in known_subjects:
                     filter_dict = {"$or": [{"subject_code": sems[0]}, {"subject_code": sems[1]}]}
-                    k_val = 8 # Need more context chunks for two whole semesters
-                    extra_instruction = f"The user is asking about Year {year_num}. Ensure you explain that it consists of Semester {sems[0][-1]} and Semester {sems[1][-1]}. List the courses provided in the context for both semesters. Do not refuse to answer if you only have the course names/credits instead of full topics; providing the course list is the correct answer."
+                    k_val = 15 # Boost significantly to ensure all tables for both semesters are retrieved
+                    
+                    is_elective = bool(re.search(r'elective', query, re.IGNORECASE))
+                    if is_elective:
+                        extra_instruction = f"The user is asking about electives for Year {year_num} (Semester {sems[0][-1]} and Semester {sems[1][-1]}). List the requested electives from the context. If a semester does not have any electives (for example, Semester 8 does not have depth or open electives), explicitly state that and only list the electives for the semester that has them."
+                    else:
+                        extra_instruction = f"The user is asking about the syllabus for Year {year_num}. Ensure you explain that it consists of Semester {sems[0][-1]} and Semester {sems[1][-1]}. List the courses provided in the context for both semesters. Do not refuse to answer if you only have the course names/credits instead of full topics; providing the course list is the correct answer."
+                        
                     st.info(f"Detected query for Year {year_num} (Semesters {sems[0][-1]} & {sems[1][-1]}), applying metadata filter...")
             
             # Check for semester query if not a year query
